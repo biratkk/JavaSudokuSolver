@@ -29,6 +29,7 @@ enum Difficulty{
     Difficulty(String difficulty) {
         this.difficulty = difficulty;
     }
+
     public String toString(){
         return difficulty;
     }
@@ -75,10 +76,10 @@ public class Board{
                     System.out.print(Color.RED);
                     System.out.print(board[i][j]+" ");
                 }
-                else if(j<col&&i<row) {
-                    System.out.print(Color.GREEN);
-                    System.out.print(board[i][j]+" ");
-                }
+//                else if(j<col&&i<row) {
+//                    System.out.print(Color.GREEN);
+//                    System.out.print(board[i][j]+" ");
+//                }
                 else{
                     System.out.print(Color.RESET);
                     System.out.print(board[i][j]+" ");
@@ -102,15 +103,16 @@ public class Board{
                     for(int num = 1;num<10;num++){
                         boolean check = isPossible(i,j,num);
                         this.board[i][j] = num;
-                        printBoard(i,j);
                         if(check){
-                            this.board[i][j] = num;
                             if(solveBoard()){
                                 return true;
                             }
                             else{
                                 this.board[i][j] = 0;
                             }
+                        }
+                        else{
+                            this.board[i][j] = 0;
                         }
                     }
                     return false;
