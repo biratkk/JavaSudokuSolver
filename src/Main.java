@@ -4,9 +4,10 @@ import java.io.IOException;
 public class Main{
 
     public static void main(String[] args) throws IOException {
-        Board board = new Board();
-        board.printBoard(9,9);
+        //setting the difficulty of the program
+        Board board = new Board(Difficulty.EASY);
+        board.printBoard();
         board.solveBoard();
-        board.printBoard(9,9);
+        board.printBoard();
     }
 }

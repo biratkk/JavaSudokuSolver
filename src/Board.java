@@ -22,17 +22,30 @@ enum Color{
         return color;
     }
 }
+enum Difficulty{
+    EASY("easy"),MEDIUM("medium"),HARD("hard");
+    private final String difficulty;
+
+    Difficulty(String difficulty) {
+        this.difficulty = difficulty;
+    }
+    public String toString(){
+        return difficulty;
+    }
+}
 public class Board{
 
     int[][] board;
-    public Board() throws IOException {
+    public Board(Difficulty difficulty) throws IOException {
         Document doc = Jsoup
-                .connect("https://sugoku.herokuapp.com/board?difficulty=easy")
+                .connect("https://sugoku.herokuapp.com/board?difficulty="+difficulty.toString())
                 .ignoreContentType(true)
                 .get();
         this.board = getBoardFromDoc(doc);
     }
-
+    /*
+    method parses board from JSON
+     */
     private int[][] getBoardFromDoc(Document doc) {
         Elements elements = doc.getAllElements();
         String json = elements.text();
@@ -48,14 +61,12 @@ public class Board{
         }
         return tempBoard;
     }
-
-    public void printBoard() {
-        int[][] board = this.board;
-        for(int[] temp: board){
-            System.out.println(Arrays.toString(temp));
-        }
-        System.out.println("-----------------------------");
-    }
+    /*
+    prints the board as green until the current row and column which it highlights as red
+    The rest of the board is white.
+    Therefore, when everything is white - board is unsolved
+    When everything is green - board is completely solved.
+     */
     public void printBoard(int row, int col){
         int[][] board = this.board;
         for(int i = 0;i<9;i++){
@@ -64,7 +75,7 @@ public class Board{
                     System.out.print(Color.RED);
                     System.out.print(board[i][j]+" ");
                 }
-                else if(i<row||j<col){
+                else if(j<col&&i<row) {
                     System.out.print(Color.GREEN);
                     System.out.print(board[i][j]+" ");
                 }
@@ -75,7 +86,15 @@ public class Board{
             }
             System.out.println();
         }
+        System.out.println();
     }
+    public void printBoard(){
+        printBoard(9,9);//prints out the entire board
+    }
+    /*
+    Recursive backtracking to solve a sudoku board.
+    Intuitive color coded input in console when Main.java is run
+     */
     public boolean solveBoard() {
         for(int i = 0;i<9;i++){
             for(int j = 0;j<9;j++){
@@ -84,7 +103,6 @@ public class Board{
                         boolean check = isPossible(i,j,num);
                         this.board[i][j] = num;
                         printBoard(i,j);
-                        System.out.println();
                         if(check){
                             this.board[i][j] = num;
                             if(solveBoard()){
@@ -101,16 +119,20 @@ public class Board{
         }
         return true;
     }
-
+    /*
+    Checks if the value on the board is possible with index i and j for number num
+     */
     private boolean isPossible(int i, int j, int num) {
         int[] arr = Arrays.copyOf(this.board[i],9);
         boolean check = Arrays.stream(arr).anyMatch(x->x==num);
         if(check)return false;
+        //checks row using streams to check if there are any of the same numbers
         for(int ind = 0;ind<9;ind++){
             arr[ind] = this.board[ind][j];
         }
         check = Arrays.stream(arr).anyMatch(x->x==num);
         if(check) return false;
+        //checks columns using streams to check if there are any of the same numbers
         int modRow = (int)(3*Math.floor((double)i/3));
         int modCol = (int)(3*Math.floor((double)j/3));
         for(int k = 0;k<3;k++){
@@ -120,6 +142,7 @@ public class Board{
                 }
             }
         }
+        //check subgrid iteratively to check if there are any of the same numbers
         return true;
     }
 
