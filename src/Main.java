@@ -27,23 +27,21 @@ enum Difficulty{
 public class Main{
 
     public static void main(String[] args) throws IOException {
-        //setting the difficulty of the program
-        Difficulty difficulty = Difficulty.EASY;
+        //setting the difficulty and speed of the program
+        Difficulty difficulty = Difficulty.HARD;
+        Speed speed = Speed.INFINITE;
         int[][] board = makeBoard(difficulty);
         Board gui = new Board(board);
         JButton button = new JButton("Click to solve");
-        button.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
+        button.addActionListener((event)-> {
                 new Thread(()->{
-                    Solver solver = new Solver(board,gui);
+                    Solver solver = new Solver(board,gui,speed);
                     try {
                         if(solver.solve())solver.printBoard();
                     } catch (InterruptedException interruptedException) {
                         interruptedException.printStackTrace();
                     }
                 }).start();
-            }
         });
         JFrame frame = new JFrame();
         frame.setTitle("Board");
