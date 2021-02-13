@@ -1,4 +1,6 @@
 
+import Enums.Difficulty;
+import Enums.Speed;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
@@ -6,53 +8,74 @@ import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
 import javax.swing.*;
-import java.awt.Color;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.*;
 import java.io.IOException;
 
-enum Difficulty{
-    EASY("easy"),MEDIUM("medium"),HARD("hard");
-    private final String difficulty;
-
-    Difficulty(String difficulty) {
-        this.difficulty = difficulty;
-    }
-
-    public String toString(){
-        return difficulty;
-    }
-}
-
 public class Main{
+    public Difficulty difficulty = Difficulty.EASY;
+    public Speed speed = Speed.SLOW;
 
+    private final int[][] board;
+    private final Board gui;
+    private Thread solver;
     public static void main(String[] args) throws IOException {
-        //setting the difficulty and speed of the program
-        Difficulty difficulty = Difficulty.HARD;
-        Speed speed = Speed.INFINITE;
-        int[][] board = makeBoard(difficulty);
-        Board gui = new Board(board);
-        JButton button = new JButton("Click to solve");
-        button.addActionListener((event)-> {
-                new Thread(()->{
-                    Solver solver = new Solver(board,gui,speed);
-                    try {
-                        if(solver.solve())solver.printBoard();
-                    } catch (InterruptedException interruptedException) {
-                        interruptedException.printStackTrace();
-                    }
-                }).start();
-        });
+       new Main();
+    }
+    public Main() throws IOException {
+        board = makeBoard(difficulty);
+        gui = new Board(board);
+        initSolverThread();
+        createGUI();
+    }
+
+    private void createGUI() {
         JFrame frame = new JFrame();
         frame.setTitle("Board");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(800,700);
+        frame.setSize(1000,1000);
         frame.setVisible(true);
         frame.add(gui);
-        gui.add(button);
 
+        JPanel buttons = new JPanel(new FlowLayout());
+        JButton startbutton = new JButton("Click to solve");
+        startbutton.addActionListener((event)-> startSolverThread());
+        buttons.add(startbutton);
 
+        /*
+        This is for future improvements
+         */
+//        JButton stopbutton = new JButton("Reset");
+//        stopbutton.addActionListener((event)->{
+//            try {
+//                stopSolverThread();
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//        });
+//        gui.add(stopbutton);
+        frame.add(buttons);
     }
+
+    private void initSolverThread(){
+        solver = new Thread(()->{
+            Solver solver = new Solver(board,gui,speed);
+            try {
+                solver.solve();
+            } catch (InterruptedException interruptedException) {
+                interruptedException.printStackTrace();
+            }
+        });
+    }
+    private void startSolverThread() {
+        solver.start();
+    }
+
+    /*
+    This is for future improvements
+     */
+//    private void stopSolverThread() throws InterruptedException {
+//        solver.wait();
+//    }
     public static int[][] makeBoard(Difficulty difficulty) throws IOException {
         Document doc = Jsoup
                 .connect("https://sugoku.herokuapp.com/board?difficulty="+difficulty.toString())

@@ -20,11 +20,10 @@ import java.util.LinkedList;
 
 public class Board extends JPanel{
 
-    int[][] board;
     ArrayList<JLabel[]> list = new ArrayList<>();
-    Image img = Toolkit.getDefaultToolkit().getImage("resources/Background.jpg");
+    ImageIcon img = new ImageIcon("resources/Background.jpg");
     GridBagConstraints gbc = new GridBagConstraints();
-    public Board(int[][] board) throws IOException {
+    public Board(int[][] board){
         for(int i = 0;i<9;i++){
             list.add(new JLabel[9]);
         }
@@ -53,9 +52,9 @@ public class Board extends JPanel{
             }
         }
     }
+    @Override
     public void paintComponent(Graphics g){
         super.paintComponent(g);
-        g.drawImage(img,0,0,null);
         Lines lines = new Lines();
         drawLines(lines);
         repaint();
