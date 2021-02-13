@@ -1,151 +1,83 @@
 
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.Color;
+import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
-enum Color{
-    RESET("\033[0m"),       //Normal
-    RED("\033[0;31m"),      // RED
-    GREEN("\033[0;32m");    // GREEN
-    private final String color;
+import java.util.LinkedList;
 
-    Color(String color) {
-        this.color = color;
-    }
-
-    @Override
-    public String toString() {
-        return color;
-    }
-}
-enum Difficulty{
-    EASY("easy"),MEDIUM("medium"),HARD("hard");
-    private final String difficulty;
-
-    Difficulty(String difficulty) {
-        this.difficulty = difficulty;
-    }
-
-    public String toString(){
-        return difficulty;
-    }
-}
-public class Board{
+public class Board extends JPanel{
 
     int[][] board;
-    public Board(Difficulty difficulty) throws IOException {
-        Document doc = Jsoup
-                .connect("https://sugoku.herokuapp.com/board?difficulty="+difficulty.toString())
-                .ignoreContentType(true)
-                .get();
-        this.board = getBoardFromDoc(doc);
-    }
-    /*
-    method parses board from JSON
-     */
-    private int[][] getBoardFromDoc(Document doc) {
-        Elements elements = doc.getAllElements();
-        String json = elements.text();
-        JSONObject obj = new JSONObject(json);
-        JSONArray arr = obj.getJSONArray("board");
-        int[][] tempBoard = new int[9][9];
-        for (int i = 0; i < 9; i++) {
-            JSONArray first = arr.getJSONArray(i);
-            for (int j = 0; j < 9; j++) {
-                Object num = first.get(j);
-                tempBoard[i][j] = Integer.parseInt(num.toString());
-            }
-        }
-        return tempBoard;
-    }
-    /*
-    prints the board as green until the current row and column which it highlights as red
-    The rest of the board is white.
-    Therefore, when everything is white - board is unsolved
-    When everything is green - board is completely solved.
-     */
-    public void printBoard(int row, int col){
-        int[][] board = this.board;
+    ArrayList<JLabel[]> list = new ArrayList<>();
+    Image img = Toolkit.getDefaultToolkit().getImage("resources/Background.jpg");
+    GridBagConstraints gbc = new GridBagConstraints();
+    public Board(int[][] board) throws IOException {
         for(int i = 0;i<9;i++){
-            for(int j = 0;j<9;j++){
-                if(i == row&&j==col){
-                    System.out.print(Color.RED);
-                    System.out.print(board[i][j]+" ");
-                }
-//                else if(j<col&&i<row) {
-//                    System.out.print(Color.GREEN);
-//                    System.out.print(board[i][j]+" ");
-//                }
-                else{
-                    System.out.print(Color.RESET);
-                    System.out.print(board[i][j]+" ");
-                }
-            }
-            System.out.println();
+            list.add(new JLabel[9]);
         }
-        System.out.println();
-    }
-    public void printBoard(){
-        printBoard(9,9);//prints out the entire board
-    }
-    /*
-    Recursive backtracking to solve a sudoku board.
-    Intuitive color coded input in console when Main.java is run
-     */
-    public boolean solveBoard() {
-        for(int i = 0;i<9;i++){
-            for(int j = 0;j<9;j++){
-                if(this.board[i][j]==0){
-                    for(int num = 1;num<10;num++){
-                        boolean check = isPossible(i,j,num);
-                        this.board[i][j] = num;
-                        if(check){
-                            if(solveBoard()){
-                                return true;
-                            }
-                            else{
-                                this.board[i][j] = 0;
-                            }
-                        }
-                        else{
-                            this.board[i][j] = 0;
-                        }
-                    }
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-    /*
-    Checks if the value on the board is possible with index i and j for number num
-     */
-    private boolean isPossible(int i, int j, int num) {
-        int[] arr = Arrays.copyOf(this.board[i],9);
-        boolean check = Arrays.stream(arr).anyMatch(x->x==num);
-        if(check)return false;
-        //checks row using streams to check if there are any of the same numbers
-        for(int ind = 0;ind<9;ind++){
-            arr[ind] = this.board[ind][j];
-        }
-        check = Arrays.stream(arr).anyMatch(x->x==num);
-        if(check) return false;
-        //checks columns using streams to check if there are any of the same numbers
-        int modRow = (int)(3*Math.floor((double)i/3));
-        int modCol = (int)(3*Math.floor((double)j/3));
-        for(int k = 0;k<3;k++){
-            for(int l = 0;l<3;l++){
-                if(board[modRow+k][modCol+l]==num){
-                    return false;
-                }
-            }
-        }
-        //check subgrid iteratively to check if there are any of the same numbers
-        return true;
+        setLayout(new GridBagLayout());
+        fill(board);
     }
 
+    public void highlightCurrent(int row, int col){
+        list.get(row)[col].setForeground(Color.RED);
+    }
+    public void unhighlight(int row, int col) {
+        list.get(row)[col].setForeground(Color.BLACK);
+    }
+    public void fill(int[][] board){
+        for(int i = 0;i<9;i++){
+            for(int j = 0;j<9;j++){
+                JLabel temp = new JLabel(String.valueOf(board[i][j]));
+                list.get(i)[j] = temp;
+                temp.setSize(30,30);
+                temp.setBackground(Color.BLUE);
+                temp.setFont(new Font("Calibri",Font.PLAIN,50));
+                gbc.insets = new Insets(0,25,0,25);
+                gbc.gridx = i;
+                gbc.gridy = j;
+                add(temp,gbc);
+            }
+        }
+    }
+    public void paintComponent(Graphics g){
+        super.paintComponent(g);
+        g.drawImage(img,0,0,null);
+        Lines lines = new Lines();
+        drawLines(lines);
+        repaint();
+    }
+
+    private void drawLines(Lines lines) {
+        lines.addLine(0,200,600,200);
+        lines.addLine(0,400,600,400);
+        lines.addLine(200,0,200,600);
+        lines.addLine(400,0,400,600);
+    }
+
+    public void update(int row,int col, int num) {
+        list.get(row)[col].setText(String.valueOf(num));
+    }
+
+
+    public void finishHighlight() {
+        for(JLabel[] arr:list){
+            for(JLabel label:arr){
+                label.setForeground(Color.GREEN);
+            }
+        }
+    }
 }
