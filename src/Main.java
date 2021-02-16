@@ -15,9 +15,11 @@ public class Main{
     public Difficulty difficulty = Difficulty.EASY;
     public Speed speed = Speed.SLOW;
 
-    private final int[][] board;
-    private final Board gui;
+    private int[][] board;
+    private Board gui;
     private Thread solver;
+
+    JFrame frame = new JFrame();
     public static void main(String[] args) throws IOException {
        new Main();
     }
@@ -29,31 +31,32 @@ public class Main{
     }
 
     private void createGUI() {
-        JFrame frame = new JFrame();
         frame.setTitle("Board");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(1000,1000);
+        frame.setSize(800,700);
         frame.setVisible(true);
-        frame.add(gui);
+        frame.setContentPane(gui);
 
-        JPanel buttons = new JPanel(new FlowLayout());
+        JPanel buttons = new JPanel();
+        buttons.setLayout(new BoxLayout(buttons,BoxLayout.Y_AXIS));
         JButton startbutton = new JButton("Click to solve");
+        changeDefaultFormat(startbutton);
         startbutton.addActionListener((event)-> startSolverThread());
         buttons.add(startbutton);
+
+//        JPanel buttons = new JPanel(new FlowLayout());
+//        buttons.add(startbutton);
 
         /*
         This is for future improvements
          */
-//        JButton stopbutton = new JButton("Reset");
-//        stopbutton.addActionListener((event)->{
-//            try {
-//                stopSolverThread();
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-//        });
-//        gui.add(stopbutton);
-        frame.add(buttons);
+        gui.add(buttons);
+    }
+
+    private void changeDefaultFormat(JButton startbutton) {
+        startbutton.setFocusPainted(false);
+        startbutton.setBackground(Color.BLACK);
+        startbutton.setForeground(Color.white);
     }
 
     private void initSolverThread(){
@@ -68,6 +71,7 @@ public class Main{
     }
     private void startSolverThread() {
         solver.start();
+
     }
 
     /*
