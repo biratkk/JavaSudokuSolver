@@ -13,7 +13,7 @@ import java.io.IOException;
 
 public class Main{
     public Difficulty difficulty = Difficulty.EASY;
-    public Speed speed = Speed.SLOW;
+    public Speed speed = Speed.FAST;
 
     private int[][] board;
     private Board gui;
@@ -39,31 +39,54 @@ public class Main{
 
         JPanel buttons = new JPanel();
         buttons.setLayout(new BoxLayout(buttons,BoxLayout.Y_AXIS));
-        JButton startbutton = new JButton("Click to solve");
-        changeDefaultFormat(startbutton);
-        startbutton.addActionListener((event)-> startSolverThread());
-        buttons.add(startbutton);
+
+        JButton startButton = new JButton("Click to solve");
+        changeDefaultFormat(startButton);
+        startButton.addActionListener((event) -> {
+            if(!solver.isAlive())startSolverThread();
+        });
+        buttons.add(startButton);
+
+        JButton renewButton = new JButton("Restart");
+        startButton = changeDefaultFormat(startButton);
+        renewButton.addActionListener((event) -> {
+            try {
+                renewSudoku();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+        buttons.add(renewButton);
 
 //        JPanel buttons = new JPanel(new FlowLayout());
-//        buttons.add(startbutton);
+//        buttons.add(startButton);
 
         /*
         This is for future improvements
          */
         gui.add(buttons);
     }
+    private void renewSudoku() throws IOException {
+        if(!solver.isAlive() && !solver.isInterrupted()){
+            int[][] newBoard = makeBoard(difficulty);
+            board = newBoard;
+            gui.refresh(board);
+            initSolverThread();
+        }
+    }
 
-    private void changeDefaultFormat(JButton startbutton) {
-        startbutton.setFocusPainted(false);
-        startbutton.setBackground(Color.BLACK);
-        startbutton.setForeground(Color.white);
+    private JButton changeDefaultFormat(JButton startButton) {
+        startButton.setFocusPainted(false);
+        startButton.setBackground(Color.BLACK);
+        startButton.setForeground(Color.white);
+        return startButton;
     }
 
     private void initSolverThread(){
         solver = new Thread(()->{
             Solver solver = new Solver(board,gui,speed);
             try {
-                solver.solve();
+                if(solver.solve())this.solver.interrupt();
             } catch (InterruptedException interruptedException) {
                 interruptedException.printStackTrace();
             }
@@ -71,7 +94,6 @@ public class Main{
     }
     private void startSolverThread() {
         solver.start();
-
     }
 
     /*

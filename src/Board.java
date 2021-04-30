@@ -10,6 +10,7 @@ public class Board extends JPanel{
     private final int fontSize = 40;
     ArrayList<JLabel[]> list = new ArrayList<>();
     GridBagConstraints gbc = new GridBagConstraints();
+
     public Board(int[][] board){
         this.setBackground(Color.BLACK);
         for(int i = 0;i<9;i++){
@@ -37,6 +38,22 @@ public class Board extends JPanel{
                 gbc.gridx = i;
                 gbc.gridy = j;
                 add(temp,gbc);
+            }
+        }
+    }
+    public void refresh(int[][] board){
+        for(int i = 0;i<9;i++){
+            for(int j = 0;j<9;j++){
+                list.get(i)[j].setText(String.valueOf(board[i][j]));
+//                JLabel temp = new JLabel(String.valueOf(board[i][j]));
+//                list.get(i)[j] = temp;
+//                temp.setSize(30,30);
+//                temp.setFont(new Font("Calibri",Font.PLAIN,fontSize));
+//                temp.setForeground(Color.WHITE);
+//                gbc.insets = new Insets(padVertical,padHorizontal,padVertical,padHorizontal);
+//                gbc.gridx = i;
+//                gbc.gridy = j;
+//                add(temp,gbc);
             }
         }
     }
